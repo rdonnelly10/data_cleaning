@@ -1,0 +1,38 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import glob
+
+files = glob.glob('state*.csv')
+
+#combining all 10 files into one csv
+file_list = []
+for file in files:
+  file_list.append(pd.read_csv(file))
+us_census = pd.concat(file_list)
+
+#print(us_census.head())
+
+#Prepping the Income column by removing the $ and changing the type
+us_census.Income = us_census.Income.str.replace(('\$'), '', regex=True)
+us_census.Income = pd.to_numeric(us_census.Income)
+
+#print(us_census.head())
+
+#Changing the GenderPop column into two columns
+split_string = us_census.GenderPop.str.split('_')
+us_census['Men'] = split_string.str.get(0)
+us_census['Women'] = split_string.str.get(1)
+#print(us_census.head())
+
+#taking out the 'm' and 'f' from the Men and Women columns
+us_census.Men = us_census.Men.replace('[M]', '', regex=True)
+us_census.Women = us_census.Women.replace('[F]', '', regex=True)
+
+#converting both columns into numeric columns
+us_census.Men = pd.to_numeric(us_census.Men)
+us_census.Women = pd.to_numeric(us_census.Women)
+print(us_census.head())
+
+#filling the NaN values in the Women column
+us_census = us_census.fillna(value = {'Women': us_census.TotalPop - us_census.Men})
